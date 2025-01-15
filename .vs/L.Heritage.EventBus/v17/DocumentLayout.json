@@ -1,0 +1,117 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Repos\\Mock-projects\\L.Heritage.EventBus\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{37F30481-D869-41CB-846E-9C383214E4D8}|L.Heritage.EventBus\\L.Heritage.EventBus.csproj|d:\\repos\\mock-projects\\l.heritage.eventbus\\l.heritage.eventbus\\events\\integrationevent.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{37F30481-D869-41CB-846E-9C383214E4D8}|L.Heritage.EventBus\\L.Heritage.EventBus.csproj|solutionrelative:l.heritage.eventbus\\events\\integrationevent.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{37F30481-D869-41CB-846E-9C383214E4D8}|L.Heritage.EventBus\\L.Heritage.EventBus.csproj|d:\\repos\\mock-projects\\l.heritage.eventbus\\l.heritage.eventbus\\extensions\\eventbusbuilderextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{37F30481-D869-41CB-846E-9C383214E4D8}|L.Heritage.EventBus\\L.Heritage.EventBus.csproj|solutionrelative:l.heritage.eventbus\\extensions\\eventbusbuilderextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{37F30481-D869-41CB-846E-9C383214E4D8}|L.Heritage.EventBus\\L.Heritage.EventBus.csproj|d:\\repos\\mock-projects\\l.heritage.eventbus\\l.heritage.eventbus\\abstractions\\ieventbus.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{37F30481-D869-41CB-846E-9C383214E4D8}|L.Heritage.EventBus\\L.Heritage.EventBus.csproj|solutionrelative:l.heritage.eventbus\\abstractions\\ieventbus.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{37F30481-D869-41CB-846E-9C383214E4D8}|L.Heritage.EventBus\\L.Heritage.EventBus.csproj|d:\\repos\\mock-projects\\l.heritage.eventbus\\l.heritage.eventbus\\abstractions\\eventbussubscriptioninfo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{37F30481-D869-41CB-846E-9C383214E4D8}|L.Heritage.EventBus\\L.Heritage.EventBus.csproj|solutionrelative:l.heritage.eventbus\\abstractions\\eventbussubscriptioninfo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{37F30481-D869-41CB-846E-9C383214E4D8}|L.Heritage.EventBus\\L.Heritage.EventBus.csproj|d:\\repos\\mock-projects\\l.heritage.eventbus\\l.heritage.eventbus\\abstractions\\ieventbusbuilder.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{37F30481-D869-41CB-846E-9C383214E4D8}|L.Heritage.EventBus\\L.Heritage.EventBus.csproj|solutionrelative:l.heritage.eventbus\\abstractions\\ieventbusbuilder.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{37F30481-D869-41CB-846E-9C383214E4D8}|L.Heritage.EventBus\\L.Heritage.EventBus.csproj|d:\\repos\\mock-projects\\l.heritage.eventbus\\l.heritage.eventbus\\abstractions\\iintegrationeventhandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{37F30481-D869-41CB-846E-9C383214E4D8}|L.Heritage.EventBus\\L.Heritage.EventBus.csproj|solutionrelative:l.heritage.eventbus\\abstractions\\iintegrationeventhandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 4,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "EventBusSubscriptionInfo.cs",
+              "DocumentMoniker": "D:\\Repos\\Mock-projects\\L.Heritage.EventBus\\L.Heritage.EventBus\\Abstractions\\EventBusSubscriptionInfo.cs",
+              "RelativeDocumentMoniker": "L.Heritage.EventBus\\Abstractions\\EventBusSubscriptionInfo.cs",
+              "ToolTip": "D:\\Repos\\Mock-projects\\L.Heritage.EventBus\\L.Heritage.EventBus\\Abstractions\\EventBusSubscriptionInfo.cs",
+              "RelativeToolTip": "L.Heritage.EventBus\\Abstractions\\EventBusSubscriptionInfo.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-13T03:36:15.426Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "EventBusBuilderExtensions.cs",
+              "DocumentMoniker": "D:\\Repos\\Mock-projects\\L.Heritage.EventBus\\L.Heritage.EventBus\\Extensions\\EventBusBuilderExtensions.cs",
+              "RelativeDocumentMoniker": "L.Heritage.EventBus\\Extensions\\EventBusBuilderExtensions.cs",
+              "ToolTip": "D:\\Repos\\Mock-projects\\L.Heritage.EventBus\\L.Heritage.EventBus\\Extensions\\EventBusBuilderExtensions.cs",
+              "RelativeToolTip": "L.Heritage.EventBus\\Extensions\\EventBusBuilderExtensions.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABMAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-13T00:23:41.886Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "IEventBusBuilder.cs",
+              "DocumentMoniker": "D:\\Repos\\Mock-projects\\L.Heritage.EventBus\\L.Heritage.EventBus\\Abstractions\\IEventBusBuilder.cs",
+              "RelativeDocumentMoniker": "L.Heritage.EventBus\\Abstractions\\IEventBusBuilder.cs",
+              "ToolTip": "D:\\Repos\\Mock-projects\\L.Heritage.EventBus\\L.Heritage.EventBus\\Abstractions\\IEventBusBuilder.cs",
+              "RelativeToolTip": "L.Heritage.EventBus\\Abstractions\\IEventBusBuilder.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-13T00:22:29.678Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "IIntegrationEventHandler.cs",
+              "DocumentMoniker": "D:\\Repos\\Mock-projects\\L.Heritage.EventBus\\L.Heritage.EventBus\\Abstractions\\IIntegrationEventHandler.cs",
+              "RelativeDocumentMoniker": "L.Heritage.EventBus\\Abstractions\\IIntegrationEventHandler.cs",
+              "ToolTip": "D:\\Repos\\Mock-projects\\L.Heritage.EventBus\\L.Heritage.EventBus\\Abstractions\\IIntegrationEventHandler.cs",
+              "RelativeToolTip": "L.Heritage.EventBus\\Abstractions\\IIntegrationEventHandler.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAApAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-13T00:05:18.205Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "IntegrationEvent.cs",
+              "DocumentMoniker": "D:\\Repos\\Mock-projects\\L.Heritage.EventBus\\L.Heritage.EventBus\\Events\\IntegrationEvent.cs",
+              "RelativeDocumentMoniker": "L.Heritage.EventBus\\Events\\IntegrationEvent.cs",
+              "ToolTip": "D:\\Repos\\Mock-projects\\L.Heritage.EventBus\\L.Heritage.EventBus\\Events\\IntegrationEvent.cs",
+              "RelativeToolTip": "L.Heritage.EventBus\\Events\\IntegrationEvent.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-12T23:53:50.136Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "IEventBus.cs",
+              "DocumentMoniker": "D:\\Repos\\Mock-projects\\L.Heritage.EventBus\\L.Heritage.EventBus\\Abstractions\\IEventBus.cs",
+              "RelativeDocumentMoniker": "L.Heritage.EventBus\\Abstractions\\IEventBus.cs",
+              "ToolTip": "D:\\Repos\\Mock-projects\\L.Heritage.EventBus\\L.Heritage.EventBus\\Abstractions\\IEventBus.cs",
+              "RelativeToolTip": "L.Heritage.EventBus\\Abstractions\\IEventBus.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAAWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-12T23:52:42.911Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
