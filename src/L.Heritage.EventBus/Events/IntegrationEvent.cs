@@ -1,4 +1,4 @@
-﻿namespace L.Heritage.EventBus.Events;
+﻿namespace L.EventBus.Core.Events;
 
 public record IntegrationEvent
 {

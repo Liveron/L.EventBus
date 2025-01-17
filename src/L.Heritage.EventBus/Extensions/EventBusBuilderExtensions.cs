@@ -1,11 +1,12 @@
-﻿using L.Heritage.EventBus.Abstractions;
+﻿using L.EventBus.Core.Abstractions;
+using L.EventBus.Core.Events;
 
-namespace L.Heritage.EventBus.Extensions.DependencyInjection;
+namespace L.EventBus.Core.Extensions;
 
 public static class EventBusBuilderExtensions
 {
     public static IEventBusBuilder AddSubscription<TIntegrationEvent, TIntegrationEventHandler>(
-        this IEventBusBuilder eventBusBuilder) 
+        this IEventBusBuilder eventBusBuilder)
         where TIntegrationEvent : IntegrationEvent
         where TIntegrationEventHandler : IIntegrationEventHandler<TIntegrationEvent>
     {

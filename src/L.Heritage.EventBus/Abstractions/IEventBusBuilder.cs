@@ -1,4 +1,4 @@
-﻿namespace L.Heritage.EventBus.Abstractions;
+﻿namespace L.EventBus.Core.Abstractions;
 
 public interface IEventBusBuilder
 {
