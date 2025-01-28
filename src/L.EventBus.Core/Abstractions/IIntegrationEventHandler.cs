@@ -1,6 +1,4 @@
-﻿using L.EventBus.Core.Events;
-
-namespace L.EventBus.Core.Abstractions;
+﻿namespace L.EventBus.Core.Abstractions;
 
 public interface IIntegrationEventHandler<in TIntegrationEvent> : IIntegrationEventHandler
     where TIntegrationEvent : IntegrationEvent

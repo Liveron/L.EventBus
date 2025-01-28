@@ -2,5 +2,5 @@
 
 public interface IEventBus
 {
-    Task PublishAsync();
+    Task PublishAsync(IntegrationEvent @event);
 }

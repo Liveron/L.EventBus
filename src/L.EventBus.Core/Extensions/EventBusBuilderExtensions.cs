@@ -1,7 +1,4 @@
-﻿using L.EventBus.Core.Abstractions;
-using L.EventBus.Core.Events;
-
-namespace L.EventBus.Core.Extensions;
+﻿namespace L.EventBus.Core.Extensions;
 
 public static class EventBusBuilderExtensions
 {
