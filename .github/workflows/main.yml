@@ -3,10 +3,8 @@ name: CI Nuget Package
 on: workflow_dispatch
 
 jobs:
-  build:
-  
+  build:  
     runs-on: ubuntu-latest
-    
     steps:
       - uses: actions/checkout@v4
       - name: setup dotnet
