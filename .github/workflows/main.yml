@@ -7,11 +7,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: setup dotnet
+      - name: Setup dotnet
         uses: actions/setup-dotnet@v4
         with: 
           dotnet-version: 9.0.100 
-      - name: install dependencies
-        run: |
-          pwd
-          ls -la
+      - name: Install dependencies
+        run: dotnet restore L.EventBus.sln
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
