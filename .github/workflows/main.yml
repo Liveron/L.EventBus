@@ -12,4 +12,4 @@ jobs:
         with: 
           dotnet-version: 9.0.100 
       - name: install dependencies
-        run: ls -la
+      - run: ls -la
