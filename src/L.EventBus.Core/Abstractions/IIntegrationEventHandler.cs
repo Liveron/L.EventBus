@@ -5,7 +5,8 @@ public interface IIntegrationEventHandler<in TIntegrationEvent> : IIntegrationEv
 {
     Task Handle(TIntegrationEvent @event);
 
-    Task IIntegrationEventHandler.Handle(IntegrationEvent @event) => Handle((TIntegrationEvent)@event);
+    Task IIntegrationEventHandler.Handle(IntegrationEvent @event) => 
+        Handle((TIntegrationEvent)@event);
 }
 
 public interface IIntegrationEventHandler

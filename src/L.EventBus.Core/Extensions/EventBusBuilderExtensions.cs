@@ -5,9 +5,10 @@ public static class EventBusBuilderExtensions
     public static IEventBusBuilder AddSubscription<TIntegrationEvent, TIntegrationEventHandler>(
         this IEventBusBuilder eventBusBuilder)
         where TIntegrationEvent : IntegrationEvent
-        where TIntegrationEventHandler : IIntegrationEventHandler<TIntegrationEvent>
+        where TIntegrationEventHandler : class, IIntegrationEventHandler<TIntegrationEvent>
     {
-        eventBusBuilder.Services.AddKeyedTransient<IIntegrationEventHandler>(typeof(TIntegrationEvent));
+        eventBusBuilder.Services.AddKeyedTransient<IIntegrationEventHandler, TIntegrationEventHandler>(
+            typeof(TIntegrationEvent));
 
         eventBusBuilder.Services.Configure<EventBusSubscriptionInfo>(o =>
         {

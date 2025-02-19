@@ -12,6 +12,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Элементы решен
 		nuget.config = nuget.config
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "L.EventBus.Core.Tests", "tests\L.EventBus.Core.Tests\L.EventBus.Core.Tests.csproj", "{C51BFD18-EA3A-4686-BC12-C4C71CAEE6BA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{F211E92B-AB0A-4CAC-9E23-60F583E8513E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -22,11 +26,16 @@ Global
 		{37F30481-D869-41CB-846E-9C383214E4D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{37F30481-D869-41CB-846E-9C383214E4D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{37F30481-D869-41CB-846E-9C383214E4D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C51BFD18-EA3A-4686-BC12-C4C71CAEE6BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C51BFD18-EA3A-4686-BC12-C4C71CAEE6BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C51BFD18-EA3A-4686-BC12-C4C71CAEE6BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C51BFD18-EA3A-4686-BC12-C4C71CAEE6BA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{37F30481-D869-41CB-846E-9C383214E4D8} = {52EEF114-37FC-4388-B1D5-02A6185875B2}
+		{C51BFD18-EA3A-4686-BC12-C4C71CAEE6BA} = {F211E92B-AB0A-4CAC-9E23-60F583E8513E}
 	EndGlobalSection
 EndGlobal
