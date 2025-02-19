@@ -12,7 +12,7 @@ jobs:
         with: 
           dotnet-version: 9.0.100 
       - name: Install dependencies
-        run: dotnet restore L.EventBus.sln
+        run: dotnet restore src/L.EventBus.Core/L.EventBus.Core.csproj
       - name: Build
         run: dotnet build --configuration Release --no-restore
   test:
