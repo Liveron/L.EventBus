@@ -20,7 +20,7 @@ jobs:
       - name: Save package
         uses: actions/upload-artifact@v4
         with: 
-          name: L.EventBus.Core-nuget-package
+          name: L.EventBus.Core.nupkg
           path: src/L.EventBus.Core/bin/Release/L.EventBus.Core.2.0.1.nupkg
   test:
     runs-on: ubuntu-latest
@@ -32,3 +32,13 @@ jobs:
           dotnet-version: 9.0.100
       - name: Tests
         run: dotnet test --configuration Release tests/L.EventBus.Core.Tests/L.EventBus.Core.Tests.csproj
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      api-key: ${{ NUGET_PACKAGE_ACCESS_TOKEN }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with: 
+          name: L.EventBus.Core.nupkg
+      - name: publish
+        run: ls -la        
