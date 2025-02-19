@@ -15,3 +15,13 @@ jobs:
         run: dotnet restore L.EventBus.sln
       - name: Build
         run: dotnet build --configuration Release --no-restore
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with: 
+          dotnet-version: 9.0.100
+      - name: Tests
+        run: dotnet test --configuration Release tests/L.EventBus.Core.Tests/L.EventBus.Core.Tests.csproj
