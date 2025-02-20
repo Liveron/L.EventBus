@@ -12,9 +12,11 @@ jobs:
         with: 
           dotnet-version: 9.0.100 
       - name: Install dependencies
-        run: dotnet restore src/L.EventBus.Core/L.EventBus.Core.csproj
+        run: dotnet restore
       - name: Build
-        run: dotnet build --configuration Release --no-restore src/L.EventBus.Core/L.EventBus.Core.csproj
+        run: dotnet build --configuration Release --no-restore
+      - name: Cache nuget packages
+        run: ls -la ~
       - name: Package
         run: dotnet pack --configuration Release --no-restore --no-build src/L.EventBus.Core/L.EventBus.Core.csproj
       - name: Save package
