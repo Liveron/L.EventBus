@@ -7,6 +7,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Cache build outputs
+        uses: action/cache@v4
+        with:
+          path: |
+            **/bin
+            **/obj
+          key: build-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            build-${{ runner.os }}-
       - name: Setup dotnet
         uses: actions/setup-dotnet@v4
         with: 
