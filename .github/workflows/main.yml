@@ -16,7 +16,7 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
       - name: Cache nuget packages
-        run: ls -la ~/.nuget
+        run: ls -la ~/.nuget/packages
       - name: Package
         run: dotnet pack --configuration Release --no-restore --no-build src/L.EventBus.Core/L.EventBus.Core.csproj
       - name: Save package
