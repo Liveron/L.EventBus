@@ -2,8 +2,8 @@
 using System.Text.Json;
 using L.EventBus.Abstractions;
 using L.EventBus.DependencyInjection.Configuration;
+using L.EventBus.RabbitMQ.Configuration;
 using L.EventBus.RabbitMQ.Extensions;
-using L.EventBust.RabbitMQ.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

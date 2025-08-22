@@ -1,5 +1,4 @@
 ﻿using L.EventBus.RabbitMQ.Configuration;
-using L.EventBust.RabbitMQ.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace L.EventBus.RabbitMQ.DependencyInjection.Configuration.Exchange;

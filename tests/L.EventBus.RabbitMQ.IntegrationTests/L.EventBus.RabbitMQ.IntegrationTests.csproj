@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\L.EventBus.RabbitMQ\L.EventBus.RabbitMQ.csproj" />
     <ProjectReference Include="..\..\src\L.EventBust.RabbitMQ\L.EventBus.RabbitMQ.csproj" />
   </ItemGroup>
 
