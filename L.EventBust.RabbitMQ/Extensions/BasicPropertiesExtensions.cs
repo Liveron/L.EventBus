@@ -6,7 +6,7 @@ public static class BasicPropertiesExtensions
 {
     public static void SetEventName(this BasicProperties properties, string name)
     {
-        properties.Headers ??= [];
+        properties.Headers ??= new Dictionary<string, object?>();
         properties.Headers[Headers.EventName] = name;
     }
 
