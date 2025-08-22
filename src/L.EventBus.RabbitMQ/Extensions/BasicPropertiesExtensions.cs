@@ -1,6 +1,6 @@
 ﻿using RabbitMQ.Client;
 
-namespace L.EventBust.RabbitMQ.Extensions;
+namespace L.EventBus.RabbitMQ.Extensions;
 
 public static class BasicPropertiesExtensions
 {

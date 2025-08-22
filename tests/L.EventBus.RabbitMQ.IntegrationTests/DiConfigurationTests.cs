@@ -1,7 +1,6 @@
 ﻿using EasyNetQ.Management.Client;
 using L.EventBus.DependencyInjection;
-using L.EventBust.RabbitMQ;
-using L.EventBust.RabbitMQ.DependencyInjection.Configuration;
+using L.EventBus.RabbitMQ.DependencyInjection.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
 

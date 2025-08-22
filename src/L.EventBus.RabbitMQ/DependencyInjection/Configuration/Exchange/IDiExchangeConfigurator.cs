@@ -1,4 +1,4 @@
-﻿namespace L.EventBust.RabbitMQ.DependencyInjection.Configuration.Exchange;
+﻿namespace L.EventBus.RabbitMQ.DependencyInjection.Configuration.Exchange;
 
 public interface IDiExchangeConfigurator
 {

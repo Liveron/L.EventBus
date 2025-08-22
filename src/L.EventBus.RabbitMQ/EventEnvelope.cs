@@ -1,4 +1,4 @@
-﻿namespace L.EventBust.RabbitMQ;
+﻿namespace L.EventBus.RabbitMQ;
 
 public sealed record EventEnvelope<TEvent>
 {

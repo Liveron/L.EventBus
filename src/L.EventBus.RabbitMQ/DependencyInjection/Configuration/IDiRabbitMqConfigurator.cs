@@ -1,6 +1,6 @@
-﻿using L.EventBust.RabbitMQ.DependencyInjection.Configuration.Exchange;
+﻿using L.EventBus.RabbitMQ.DependencyInjection.Configuration.Exchange;
 
-namespace L.EventBust.RabbitMQ.DependencyInjection.Configuration;
+namespace L.EventBus.RabbitMQ.DependencyInjection.Configuration;
 
 public interface IDiRabbitMqConfigurator
 {

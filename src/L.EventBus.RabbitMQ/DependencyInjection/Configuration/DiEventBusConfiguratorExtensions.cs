@@ -1,11 +1,11 @@
 ﻿using L.EventBus.Abstractions;
 using L.EventBus.DependencyInjection.Configuration;
-using L.EventBust.RabbitMQ.Configuration;
-using L.EventBust.RabbitMQ.DependencyInjection.Configuration.Exchange;
+using L.EventBus.RabbitMQ.Configuration;
+using L.EventBus.RabbitMQ.DependencyInjection.Configuration.Exchange;
 using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
 
-namespace L.EventBust.RabbitMQ.DependencyInjection.Configuration;
+namespace L.EventBus.RabbitMQ.DependencyInjection.Configuration;
 
 public static class DiEventBusConfiguratorExtensions
 {

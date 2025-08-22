@@ -1,7 +1,8 @@
-﻿using L.EventBust.RabbitMQ.Configuration;
+﻿using L.EventBus.RabbitMQ.Configuration;
+using L.EventBust.RabbitMQ.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace L.EventBust.RabbitMQ.DependencyInjection.Configuration.Exchange;
+namespace L.EventBus.RabbitMQ.DependencyInjection.Configuration.Exchange;
 
 public sealed class DiExchangeConfigurator(IServiceCollection services, string exchangeName) : IDiExchangeConfigurator
 {

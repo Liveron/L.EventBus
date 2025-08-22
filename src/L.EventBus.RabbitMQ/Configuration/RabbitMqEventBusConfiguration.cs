@@ -1,4 +1,4 @@
-﻿namespace L.EventBust.RabbitMQ.Configuration;
+﻿namespace L.EventBus.RabbitMQ.Configuration;
 
 public sealed class RabbitMqEventBusConfiguration
 {

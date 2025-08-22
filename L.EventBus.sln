@@ -11,7 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{F211E92B
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "L.EventBus.Abstractions", "src\L.EventBus.Abstractions\L.EventBus.Abstractions.csproj", "{50406F53-1BE4-4A68-BC48-BA7AEF752371}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "L.EventBust.RabbitMQ", "src\L.EventBust.RabbitMQ\L.EventBust.RabbitMQ.csproj", "{B4A53D51-362F-4D8B-AB93-56574DDD0A86}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "L.EventBus.RabbitMQ", "src\L.EventBus.RabbitMQ\L.EventBus.RabbitMQ.csproj", "{B4A53D51-362F-4D8B-AB93-56574DDD0A86}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "L.EventBus.RabbitMQ.IntegrationTests", "tests\L.EventBus.RabbitMQ.IntegrationTests\L.EventBus.RabbitMQ.IntegrationTests.csproj", "{D9AA88D3-E47B-4477-A6BC-BD3D543F7F98}"
 EndProject

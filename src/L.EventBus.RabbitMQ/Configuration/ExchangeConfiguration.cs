@@ -1,3 +1,3 @@
-﻿namespace L.EventBust.RabbitMQ.Configuration;
+﻿namespace L.EventBus.RabbitMQ.Configuration;
 
 public record ExchangeConfiguration(string Name, string Type);

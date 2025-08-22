@@ -2,8 +2,8 @@
 using System.Text.Json;
 using L.EventBus.Abstractions;
 using L.EventBus.DependencyInjection.Configuration;
+using L.EventBus.RabbitMQ.Extensions;
 using L.EventBust.RabbitMQ.Configuration;
-using L.EventBust.RabbitMQ.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -11,7 +11,7 @@ using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
-namespace L.EventBust.RabbitMQ;
+namespace L.EventBus.RabbitMQ;
 
 public sealed class RabbitMqEventBus : IHostedService, IEventBus, IAsyncDisposable, IDisposable
 {
