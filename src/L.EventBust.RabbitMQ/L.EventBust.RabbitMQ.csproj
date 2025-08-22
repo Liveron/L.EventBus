@@ -15,8 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\L.EventBus.Abstractions\L.EventBus.Abstractions.csproj" />
-    <ProjectReference Include="..\src\L.EventBus.Core\L.EventBus.csproj" />
+    <ProjectReference Include="..\L.EventBus\L.EventBus.csproj" />
   </ItemGroup>
 
 </Project>

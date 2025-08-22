@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.12.35521.163
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "L.EventBus", "src\L.EventBus.Core\L.EventBus.csproj", "{37F30481-D869-41CB-846E-9C383214E4D8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "L.EventBus", "src\L.EventBus\L.EventBus.csproj", "{37F30481-D869-41CB-846E-9C383214E4D8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{52EEF114-37FC-4388-B1D5-02A6185875B2}"
 EndProject
@@ -14,9 +14,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Элементы решен
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{F211E92B-AB0A-4CAC-9E23-60F583E8513E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "L.EventBus.Abstractions", "L.EventBus.Abstractions\L.EventBus.Abstractions.csproj", "{50406F53-1BE4-4A68-BC48-BA7AEF752371}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "L.EventBus.Abstractions", "src\L.EventBus.Abstractions\L.EventBus.Abstractions.csproj", "{50406F53-1BE4-4A68-BC48-BA7AEF752371}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "L.EventBust.RabbitMQ", "L.EventBust.RabbitMQ\L.EventBust.RabbitMQ.csproj", "{B4A53D51-362F-4D8B-AB93-56574DDD0A86}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "L.EventBust.RabbitMQ", "src\L.EventBust.RabbitMQ\L.EventBust.RabbitMQ.csproj", "{B4A53D51-362F-4D8B-AB93-56574DDD0A86}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
