@@ -1,9 +1,9 @@
-﻿using L.EventBus.Core.Abstractions;
-using L.EventBus.Core.Extensions;
-using L.EventBus.Core.Events;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
+using L.EventBus.Extensions;
+using L.EventBus.Abstractions;
+using L.EventBus.Events;
 
 namespace L.EventBus.Core.Tests.EventBusBuilderExtensions;
 

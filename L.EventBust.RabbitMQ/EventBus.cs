@@ -1,0 +1,176 @@
+﻿using System.Text;
+using System.Text.Json;
+using L.EventBus.Abstractions;
+using L.EventBus.DependencyInjection.Configuration;
+using L.EventBust.RabbitMQ.Configuration;
+using L.EventBust.RabbitMQ.Extensions;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
+
+namespace L.EventBust.RabbitMQ;
+
+public sealed class EventBus : BackgroundService, IEventBus
+{
+    private readonly IServiceProvider _services;
+    private readonly RabbitMqEventBusConfiguration _rabbitMqConfiguration;
+    private readonly EventBusSubscriptionsInfo _subscriptionsInfo;
+    private readonly ILogger _logger;
+
+    private IConnection? _rabbitMqConnection;
+    private IChannel? _consumerChannel;
+
+    // ReSharper disable once ConvertToPrimaryConstructor
+    public EventBus(IServiceProvider services, IOptions<RabbitMqEventBusConfiguration> config,
+        IOptions<EventBusSubscriptionsInfo> subscriptionsInfo, ILogger<EventBus> logger)
+    {
+        _services = services;
+        _rabbitMqConfiguration = config.Value;
+        _subscriptionsInfo = subscriptionsInfo.Value;
+        _logger = logger;
+    }
+
+    public async Task PublishAsync<TEvent>(TEvent @event)
+    {
+        if (!_rabbitMqConfiguration.MessageConfigurations.TryGetValue(typeof(TEvent), out var messageConfiguration))
+            throw new InvalidOperationException("There is no routing key for such event type.");
+
+        if (_rabbitMqConnection is null)
+            throw new InvalidOperationException("RabbitMQ connection is not open.");
+
+        await using var channel = await _rabbitMqConnection.CreateChannelAsync();
+
+        await channel.ExchangeDeclareAsync(exchange: messageConfiguration.Exchange, type: ExchangeType.Topic);
+
+        var body = SerializeMessage(@event);
+
+        var properties = CreateProperties(typeof(TEvent).Name);
+
+        await channel.BasicPublishAsync(
+            exchange: messageConfiguration.Exchange,
+            routingKey: messageConfiguration.RoutingKey,
+            mandatory: true,
+            basicProperties: properties,
+            body: body);
+    }
+
+    private static BasicProperties CreateProperties(string eventName)
+    {
+        var properties = new BasicProperties();
+        properties.SetEventName(eventName);
+        return properties;
+    }
+
+    private static byte[] SerializeMessage<TEvent>(TEvent @event)
+    {
+        var envelope = new EventEnvelope<TEvent>(
+            @event, "v1", "accounts-service", Guid.NewGuid());
+
+        return JsonSerializer.SerializeToUtf8Bytes(envelope);
+    }
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        try
+        {
+            _logger.LogInformation("Starting RabbitMQ connection on a background thread");
+
+            _rabbitMqConnection = _services.GetRequiredService<IConnection>();
+            _consumerChannel = await _rabbitMqConnection.CreateChannelAsync(cancellationToken: stoppingToken);
+
+            foreach (var config in _rabbitMqConfiguration.ExchangeConfigurations)
+            {
+                await _consumerChannel.ExchangeDeclareAsync(
+                    exchange: config.Name, 
+                    type: config.Type, 
+                    durable: true, 
+                    cancellationToken: stoppingToken);
+            }
+
+            foreach (var config in _rabbitMqConfiguration.QueueConfigurations)
+            {
+                await _consumerChannel.QueueDeclareAsync(
+                    queue: config.Name,
+                    autoDelete: false,
+                    durable: true,
+                    cancellationToken: stoppingToken);
+
+                await _consumerChannel.QueueBindAsync(
+                    queue: config.Name,
+                    exchange: config.Exchange,
+                    routingKey: config.RoutingKey,
+                    cancellationToken: stoppingToken);
+            }
+
+            foreach (var subscription in _rabbitMqConfiguration.QueueSubscriptions)
+            {
+                var consumer = new AsyncEventingBasicConsumer(_consumerChannel);
+                consumer.ReceivedAsync += OnMessageReceived;
+
+                await _consumerChannel.BasicConsumeAsync(
+                    queue: subscription,
+                    autoAck: false,
+                    consumer: consumer,
+                    cancellationToken: stoppingToken);
+            }
+
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error starting RabbitMQ connection");
+        }
+    }
+
+    private async Task OnMessageReceived(object _, BasicDeliverEventArgs args)
+    {
+        var eventName = args.BasicProperties.GetEventName();
+        if (eventName is null)
+        {
+            _logger.LogWarning("Unable to get event name header from message");
+            return;
+        }
+
+        var message = Encoding.UTF8.GetString(args.Body.Span);
+
+        try
+        {
+            await ProcessEvent(eventName, message);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+
+        if (_consumerChannel is null)
+            throw new InvalidOperationException("Consumer channel instance is null");
+
+        await _consumerChannel.BasicAckAsync(args.DeliveryTag, multiple: false);
+    }
+
+    private async Task ProcessEvent(string eventName, string message)
+    {
+        if (!_subscriptionsInfo.EventTypes.TryGetValue(eventName, out var eventType))
+        {
+            _logger.LogWarning("Unable to resolve event type for event name {EventName}", eventType);
+            return;
+        }
+
+        var @event = DeserializeMessage(message, eventType);
+
+        await using var scope = _services.CreateAsyncScope();
+
+        foreach (var handler in scope.ServiceProvider.GetKeyedServices<IEventHandler>(eventType))
+        {
+            await handler.HandleAsync(@event);
+        }
+    }
+
+    private static object DeserializeMessage(string message, Type eventType)
+    {
+        return JsonSerializer.Deserialize(message, eventType)!;
+    }
+}

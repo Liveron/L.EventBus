@@ -4,13 +4,17 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-	<Version>2.0.1</Version>
+	<Version>3.0.0</Version>
 	<RepositoryUrl>https://github.com/Liveron/L.EventBus</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.0" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\L.EventBus.Abstractions\L.EventBus.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>
