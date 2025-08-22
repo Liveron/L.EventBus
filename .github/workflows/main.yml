@@ -19,7 +19,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
           source-url: ${{ env.SOURCE_URL }}
         env: 
-          NUGET_AUTH_TOKEN: ${{ secrets.NUGET_PACKAGE_ACCESS_TOKEN }}
+          NUGET_AUTH_TOKEN: ${{ secrets.NUGET_PACKAGES_ACCESS_TOKEN }}
 
       - name: Restore dependencies
         run: dotnet restore
@@ -43,7 +43,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
           source-url: ${{ env.SOURCE_URL }}
         env: 
-          NUGET_AUTH_TOKEN: ${{ secrets.NUGET_PACKAGE_ACCESS_TOKEN }}
+          NUGET_AUTH_TOKEN: ${{ secrets.NUGET_PACKAGES_ACCESS_TOKEN }}
 
       - name: Pack
         run: dotnet pack --configuration Release -o ./artifacts
@@ -52,5 +52,5 @@ jobs:
         working-directory: artifacts
         run: | 
           dotnet nuget push * --source ${{ env.SOURCE_URL }} \
-          --api-key ${{ secrets.NUGET_PACKAGE_ACCESS_TOKEN }} \
+          --api-key ${{ secrets.NUGET_PACKAGES_ACCESS_TOKEN }} \
           --skip-duplicate

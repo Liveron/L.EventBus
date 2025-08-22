@@ -7,11 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "L.EventBus", "src\L.EventBu
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{52EEF114-37FC-4388-B1D5-02A6185875B2}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Элементы решения", "Элементы решения", "{4C355662-98AB-42E6-95C1-20FE03290A17}"
-	ProjectSection(SolutionItems) = preProject
-		nuget.config = nuget.config
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{F211E92B-AB0A-4CAC-9E23-60F583E8513E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "L.EventBus.Abstractions", "src\L.EventBus.Abstractions\L.EventBus.Abstractions.csproj", "{50406F53-1BE4-4A68-BC48-BA7AEF752371}"
