@@ -7,7 +7,7 @@ public sealed class DiExchangeConfigurator(IServiceCollection services, string e
 {
     public void SetQueue(string name, string routingKey)
     {
-        var configuration = new QueueConfiguration(name, routingKey, exchangeName);
+        var configuration = new QueueConfiguration(name, exchangeName, routingKey);
         services.Configure<RabbitMqEventBusConfiguration>(o =>
         {
             if (o.QueueConfigurations.All(q => q.Name != name))

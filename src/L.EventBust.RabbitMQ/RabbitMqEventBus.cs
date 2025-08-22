@@ -13,19 +13,19 @@ using RabbitMQ.Client.Events;
 
 namespace L.EventBust.RabbitMQ;
 
-public sealed class EventBus : BackgroundService, IEventBus
+public sealed class RabbitMqEventBus : IHostedService, IEventBus, IAsyncDisposable, IDisposable
 {
     private readonly IServiceProvider _services;
     private readonly RabbitMqEventBusConfiguration _rabbitMqConfiguration;
     private readonly EventBusSubscriptionsInfo _subscriptionsInfo;
-    private readonly ILogger _logger;
+    private readonly ILogger? _logger;
 
     private IConnection? _rabbitMqConnection;
     private IChannel? _consumerChannel;
 
     // ReSharper disable once ConvertToPrimaryConstructor
-    public EventBus(IServiceProvider services, IOptions<RabbitMqEventBusConfiguration> config,
-        IOptions<EventBusSubscriptionsInfo> subscriptionsInfo, ILogger<EventBus> logger)
+    public RabbitMqEventBus(IServiceProvider services, IOptions<RabbitMqEventBusConfiguration> config,
+        IOptions<EventBusSubscriptionsInfo> subscriptionsInfo, ILogger<RabbitMqEventBus>? logger = null)
     {
         _services = services;
         _rabbitMqConfiguration = config.Value;
@@ -72,11 +72,61 @@ public sealed class EventBus : BackgroundService, IEventBus
         return JsonSerializer.SerializeToUtf8Bytes(envelope);
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    private async Task OnMessageReceived(object _, BasicDeliverEventArgs args)
+    {
+        var eventName = args.BasicProperties.GetEventName();
+        if (eventName is null)
+        {
+            _logger?.LogWarning("Unable to get event name header from message");
+            return;
+        }
+
+        var message = Encoding.UTF8.GetString(args.Body.Span);
+
+        try
+        {
+            await ProcessEvent(eventName, message);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+
+        if (_consumerChannel is null)
+            throw new InvalidOperationException("Consumer channel instance is null");
+
+        await _consumerChannel.BasicAckAsync(args.DeliveryTag, multiple: false);
+    }
+
+    private async Task ProcessEvent(string eventName, string message)
+    {
+        if (!_subscriptionsInfo.EventTypes.TryGetValue(eventName, out var eventType))
+        {
+            _logger?.LogWarning("Unable to resolve event type for event name {EventName}", eventType);
+            return;
+        }
+
+        var @event = DeserializeMessage(message, eventType);
+
+        await using var scope = _services.CreateAsyncScope();
+
+        foreach (var handler in scope.ServiceProvider.GetKeyedServices<IEventHandler>(eventType))
+        {
+            await handler.HandleAsync(@event);
+        }
+    }
+
+    private static object DeserializeMessage(string message, Type eventType)
+    {
+        return JsonSerializer.Deserialize(message, eventType)!;
+    }
+
+    public async Task StartAsync(CancellationToken stoppingToken)
     {
         try
         {
-            _logger.LogInformation("Starting RabbitMQ connection on a background thread");
+            _logger?.LogInformation("Starting RabbitMQ connection on a background thread");
 
             _rabbitMqConnection = _services.GetRequiredService<IConnection>();
             _consumerChannel = await _rabbitMqConnection.CreateChannelAsync(cancellationToken: stoppingToken);
@@ -84,9 +134,9 @@ public sealed class EventBus : BackgroundService, IEventBus
             foreach (var config in _rabbitMqConfiguration.ExchangeConfigurations)
             {
                 await _consumerChannel.ExchangeDeclareAsync(
-                    exchange: config.Name, 
-                    type: config.Type, 
-                    durable: true, 
+                    exchange: config.Name,
+                    type: config.Type,
+                    durable: true,
                     cancellationToken: stoppingToken);
             }
 
@@ -120,57 +170,23 @@ public sealed class EventBus : BackgroundService, IEventBus
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error starting RabbitMQ connection");
+            _logger?.LogError(e, "Error starting RabbitMQ connection");
         }
     }
 
-    private async Task OnMessageReceived(object _, BasicDeliverEventArgs args)
+    public Task StopAsync(CancellationToken _)
     {
-        var eventName = args.BasicProperties.GetEventName();
-        if (eventName is null)
-        {
-            _logger.LogWarning("Unable to get event name header from message");
-            return;
-        }
-
-        var message = Encoding.UTF8.GetString(args.Body.Span);
-
-        try
-        {
-            await ProcessEvent(eventName, message);
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            throw;
-        }
-
-        if (_consumerChannel is null)
-            throw new InvalidOperationException("Consumer channel instance is null");
-
-        await _consumerChannel.BasicAckAsync(args.DeliveryTag, multiple: false);
+        return Task.CompletedTask;
     }
 
-    private async Task ProcessEvent(string eventName, string message)
+    public async ValueTask DisposeAsync()
     {
-        if (!_subscriptionsInfo.EventTypes.TryGetValue(eventName, out var eventType))
-        {
-            _logger.LogWarning("Unable to resolve event type for event name {EventName}", eventType);
-            return;
-        }
-
-        var @event = DeserializeMessage(message, eventType);
-
-        await using var scope = _services.CreateAsyncScope();
-
-        foreach (var handler in scope.ServiceProvider.GetKeyedServices<IEventHandler>(eventType))
-        {
-            await handler.HandleAsync(@event);
-        }
+        if (_consumerChannel != null) 
+            await _consumerChannel.DisposeAsync();
     }
 
-    private static object DeserializeMessage(string message, Type eventType)
+    public void Dispose()
     {
-        return JsonSerializer.Deserialize(message, eventType)!;
+        _consumerChannel?.Dispose();
     }
 }
