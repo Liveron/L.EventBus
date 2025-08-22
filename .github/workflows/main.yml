@@ -2,56 +2,55 @@ name: CI Nuget Package
 
 on: workflow_dispatch
 
+env:
+  DOTNET_VERSION: '9.0.100'
+  SOURCE_URL: 'https://nuget.pkg.github.com/Liveron/index.json'
+
 jobs:
-  build:  
+  build-and-test:  
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
-      - name: Cache build outputs
-        uses: actions/cache@v4
-        with:
-          path: |
-            **/bin
-            **/obj
-          key: build-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
-          restore-keys: |
-            build-${{ runner.os }}-
-      - name: Setup dotnet
+
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with: 
-          dotnet-version: 9.0.100 
-      - name: Install dependencies
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+          source-url: ${{ env.SOURCE_URL }}
+        env: 
+          NUGET_AUTH_TOKEN: ${{ secrets.NUGET_PACKAGE_ACCESS_TOKEN }}
+
+      - name: Restore dependencies
         run: dotnet restore
+
       - name: Build
         run: dotnet build --configuration Release --no-restore
-      - name: Cache nuget packages
-        run: ls -la ~/.nuget/packages
-      - name: Package
-        run: dotnet pack --configuration Release --no-restore --no-build src/L.EventBus.Core/L.EventBus.Core.csproj
-      - name: Save package
-        uses: actions/upload-artifact@v4
-        with: 
-          name: L.EventBus.Core.nupkg
-          path: src/L.EventBus.Core/bin/Release/L.EventBus.Core.*.nupkg
-  test:
+
+      - name: Test
+        run: dotnet test --configuration Release --no-build
+
+  pack-and-publish:
+    needs: build-and-test
     runs-on: ubuntu-latest
-    needs: build
+
     steps:
       - uses: actions/checkout@v4
-      - name: Setup dotnet
+
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with: 
-          dotnet-version: 9.0.100
-      - name: Tests
-        run: dotnet test --configuration Release tests/L.EventBus.Core.Tests/L.EventBus.Core.Tests.csproj
-  publish:
-    runs-on: ubuntu-latest
-    needs: test
-    env:
-      api-key: ${{ secrets.NUGET_PACKAGE_ACCESS_TOKEN }}
-    steps:
-      - uses: actions/download-artifact@v4
-        with: 
-          name: L.EventBus.Core.nupkg
-      - name: publish
-        run: dotnet nuget push bin/Release/L.EventBus.Core.*.nupkg --api-key $api-key --source "https://nuget.pkg.github.com/Liveron/index.json"         
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+          source-url: ${{ env.SOURCE_URL }}
+        env: 
+          NUGET_AUTH_TOKEN: ${{ secrets.NUGET_PACKAGE_ACCESS_TOKEN }}
+
+      - name: Pack
+        run: dotnet pack --configuration Release -o ./artifacts
+
+      - name: Publish to GitHub Packages
+        working-directory: artifacts
+        run: | 
+          dotnet nuget push * --source ${{ env.SOURCE_URL }} \
+          --api-key ${{ secrets.NUGET_PACKAGE_ACCESS_TOKEN }} \
+          --skip-duplicate
