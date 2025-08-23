@@ -1,5 +1,5 @@
 ﻿namespace L.EventBus.Abstractions;
 public interface IEventBus
 {
-    Task PublishAsync<TEvent>(TEvent @event);
+    Task PublishAsync<TEvent>(TEvent @event) where TEvent : notnull;
 }
