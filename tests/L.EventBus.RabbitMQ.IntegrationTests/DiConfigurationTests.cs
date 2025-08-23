@@ -132,9 +132,6 @@ public sealed class DiConfigurationTests(Fixture fixture)
         // Assert
         var queue = await fixture.ManagementClient.GetQueueAsync(VHost, QueueName);
 
-        //var connection = provider.GetRequiredService<IConnection>();
-        //await connection.AbortAsync();
-
         var messages = await fixture.ManagementClient.GetMessagesFromQueueAsync(VHost, QueueName, 
             new GetMessagesFromQueueInfo(1, AckMode.AckRequeueFalse));
 
@@ -146,5 +143,6 @@ public sealed class DiConfigurationTests(Fixture fixture)
 
         Assert.Equal(TestMessageContent, deserializedMessage!.Payload.Text);
     }
+
     private sealed record TestMessage(string Text);
 }
