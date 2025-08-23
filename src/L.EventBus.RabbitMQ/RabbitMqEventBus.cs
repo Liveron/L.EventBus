@@ -33,9 +33,9 @@ public sealed class RabbitMqEventBus : IHostedService, IEventBus, IAsyncDisposab
         _logger = logger;
     }
 
-    public async Task PublishAsync<TEvent>(TEvent @event)
+    public async Task PublishAsync<TEvent>(TEvent @event) where TEvent : notnull
     {
-        if (!_rabbitMqConfiguration.MessageConfigurations.TryGetValue(typeof(TEvent), out var messageConfiguration))
+        if (!_rabbitMqConfiguration.MessageConfigurations.TryGetValue(@event.GetType(), out var messageConfiguration))
             throw new InvalidOperationException("There is no routing key for such event type.");
 
         if (_rabbitMqConnection is null)
