@@ -1,9 +1,18 @@
-﻿namespace L.EventBus.RabbitMQ;
+﻿using System.Text.Json.Serialization;
+
+namespace L.EventBus.RabbitMQ;
 
 public sealed record EventEnvelope<TEvent>
 {
     public TEvent Payload { get; private init; }
     public EventEnvelopeMetadata Meta { get; private init; }
+
+    [JsonConstructor]
+    public EventEnvelope(TEvent payload, EventEnvelopeMetadata meta)
+    {
+        Payload = payload;
+        Meta = meta;
+    }
 
     public EventEnvelope(TEvent @event, string version, string source,
         Guid correlationId, Guid causationId = default)

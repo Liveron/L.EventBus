@@ -43,7 +43,10 @@ public sealed class RabbitMqEventBus : IHostedService, IEventBus, IAsyncDisposab
 
         await using var channel = await _rabbitMqConnection.CreateChannelAsync();
 
-        await channel.ExchangeDeclareAsync(exchange: messageConfiguration.Exchange, type: ExchangeType.Topic);
+        await channel.ExchangeDeclareAsync(
+            exchange: messageConfiguration.Exchange, 
+            type: ExchangeType.Topic,
+            durable: true);
 
         var body = SerializeMessage(@event);
 
@@ -146,7 +149,8 @@ public sealed class RabbitMqEventBus : IHostedService, IEventBus, IAsyncDisposab
                     queue: config.Name,
                     autoDelete: false,
                     durable: true,
-                    cancellationToken: stoppingToken);
+                    cancellationToken: stoppingToken,
+                    exclusive: false);
 
                 await _consumerChannel.QueueBindAsync(
                     queue: config.Name,
