@@ -17,7 +17,7 @@ public sealed class RabbitMqEventBus : IHostedService, IEventBus, IAsyncDisposab
 {
     private readonly IServiceProvider _services;
     private readonly RabbitMqEventBusConfiguration _rabbitMqConfiguration;
-    private readonly EventBusSubscriptionsInfo _subscriptionsInfo;
+    private readonly EventBusInfo _eventBusInfo;
     private readonly ILogger? _logger;
 
     private IConnection? _rabbitMqConnection;
@@ -25,15 +25,15 @@ public sealed class RabbitMqEventBus : IHostedService, IEventBus, IAsyncDisposab
 
     // ReSharper disable once ConvertToPrimaryConstructor
     public RabbitMqEventBus(IServiceProvider services, IOptions<RabbitMqEventBusConfiguration> config,
-        IOptions<EventBusSubscriptionsInfo> subscriptionsInfo, ILogger<RabbitMqEventBus>? logger = null)
+        IOptions<EventBusInfo> subscriptionsInfo, ILogger<RabbitMqEventBus>? logger = null)
     {
         _services = services;
         _rabbitMqConfiguration = config.Value;
-        _subscriptionsInfo = subscriptionsInfo.Value;
+        _eventBusInfo = subscriptionsInfo.Value;
         _logger = logger;
     }
 
-    public async Task PublishAsync<TEvent>(TEvent @event)
+    public async Task PublishAsync<TEvent>(TEvent @event) where TEvent : notnull
     {
         if (!_rabbitMqConfiguration.MessageConfigurations.TryGetValue(typeof(TEvent), out var messageConfiguration))
             throw new InvalidOperationException("There is no routing key for such event type.");
@@ -61,15 +61,13 @@ public sealed class RabbitMqEventBus : IHostedService, IEventBus, IAsyncDisposab
     {
         var properties = new BasicProperties();
         properties.SetEventName(eventName);
+        properties.CorrelationId = Guid.NewGuid().ToString();
         return properties;
     }
 
-    private static byte[] SerializeMessage<TEvent>(TEvent @event)
+    private static byte[] SerializeMessage<TEvent>(TEvent @event) where TEvent : notnull
     {
-        var envelope = new EventEnvelope<TEvent>(
-            @event, "v1", "accounts-service", Guid.NewGuid());
-
-        return JsonSerializer.SerializeToUtf8Bytes(envelope);
+        return JsonSerializer.SerializeToUtf8Bytes(@event, @event.GetType());
     }
 
     private async Task OnMessageReceived(object _, BasicDeliverEventArgs args)
@@ -101,7 +99,7 @@ public sealed class RabbitMqEventBus : IHostedService, IEventBus, IAsyncDisposab
 
     private async Task ProcessEvent(string eventName, string message)
     {
-        if (!_subscriptionsInfo.EventTypes.TryGetValue(eventName, out var eventType))
+        if (!_eventBusInfo.EventTypes.TryGetValue(eventName, out var eventType))
         {
             _logger?.LogWarning("Unable to resolve event type for event name {EventName}", eventType);
             return;
@@ -117,8 +115,14 @@ public sealed class RabbitMqEventBus : IHostedService, IEventBus, IAsyncDisposab
         }
     }
 
-    private static object DeserializeMessage(string message, Type eventType)
+    private object DeserializeMessage(string message, Type eventType)
     {
+        if (_eventBusInfo.MessageEnvelopeType is not null)
+        {
+            var envelopeType = _eventBusInfo.MessageEnvelopeType.MakeGenericType(eventType);
+            return JsonSerializer.Deserialize(message, envelopeType)!;
+        }
+
         return JsonSerializer.Deserialize(message, eventType)!;
     }
 
