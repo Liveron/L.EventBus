@@ -2,4 +2,4 @@
 
 namespace L.EventBus.Abstractions.Filters;
 
-public delegate Task FilterDelegate(IConsumeContext context);
+public delegate Task ConsumeDelegate(IConsumeContext context);

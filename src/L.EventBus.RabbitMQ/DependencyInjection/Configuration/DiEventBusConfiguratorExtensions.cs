@@ -9,19 +9,6 @@ namespace L.EventBus.RabbitMQ.DependencyInjection.Configuration;
 
 public static class DiEventBusConfiguratorExtensions
 {
-    public static void SetExchange(this IDiEventBusConfigurator eventBusConfigurator, string type, string name,
-        Action<IDiExchangeConfigurator>? config = null)
-    {
-        var configurator = new DiExchangeConfigurator(eventBusConfigurator.Services, name);
-        config?.Invoke(configurator);
-
-        var exchangeConfiguration = new ExchangeConfiguration(name, type);
-        eventBusConfigurator.Services.Configure<RabbitMqEventBusConfiguration>(o =>
-        {
-            o.ExchangeConfigurations.Add(exchangeConfiguration);
-        });
-    }
-
     public static void UseRabbitMq(this IDiEventBusConfigurator eventBusConfigurator, string rabbitMqConnectionString,
         Action<IDiRabbitMqConfigurator>? config = null)
     {

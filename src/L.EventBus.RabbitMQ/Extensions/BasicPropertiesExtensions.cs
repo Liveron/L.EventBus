@@ -1,4 +1,6 @@
 ﻿using RabbitMQ.Client;
+using System.Buffers.Text;
+using System.Text;
 
 namespace L.EventBus.RabbitMQ.Extensions;
 
@@ -18,6 +20,9 @@ public static class BasicPropertiesExtensions
         if (!properties.Headers.TryGetValue(Headers.EventName, out var value))
             return null;
 
-        return value as string;
+        if (value is not byte[] bytes)
+            return null;
+
+        return Encoding.UTF8.GetString(bytes);
     }
 }

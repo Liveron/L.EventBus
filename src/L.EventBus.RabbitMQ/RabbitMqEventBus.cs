@@ -1,9 +1,13 @@
 ﻿using System.Text;
 using System.Text.Json;
 using L.EventBus.Abstractions;
+using L.EventBus.Abstractions.Context;
+using L.EventBus.Abstractions.Filters;
 using L.EventBus.DependencyInjection.Configuration;
 using L.EventBus.RabbitMQ.Configuration;
+using L.EventBus.RabbitMQ.Context;
 using L.EventBus.RabbitMQ.Extensions;
+using L.EventBus.RabbitMQ.Filters;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -35,22 +39,44 @@ public sealed class RabbitMqEventBus : IHostedService, IEventBus, IAsyncDisposab
 
     public async Task PublishAsync<TEvent>(TEvent @event) where TEvent : notnull
     {
-        if (!_rabbitMqConfiguration.MessageConfigurations.TryGetValue(@event.GetType(), out var messageConfiguration))
+        await PublishWithFilters(@event);
+    }
+
+    private async Task PublishWithFilters(object @event)
+    {
+        await using var scope = _services.CreateAsyncScope();
+        var publishFilters = scope.ServiceProvider.GetServices<IRabbitMqPublishFilter>()
+            .ToList();
+
+        RabbitMqPublishDelegate pipeline = PublishEventAsync;
+        for (var i = publishFilters.Count - 1; i >= 0; i--)
+        {
+            var index = i;
+            var next = pipeline;
+            pipeline = context => publishFilters[index].PublishAsync(context, next);
+        }
+
+        var context = new RabbitMqPublishContext(@event);
+        await pipeline(context);
+    }
+
+    private async Task PublishEventAsync(IRabbitMqPublishContext context)
+    {
+        if (!_rabbitMqConfiguration.MessageConfigurations.TryGetValue(context.Payload.GetType(), out var messageConfiguration))
             throw new InvalidOperationException("There is no routing key for such event type.");
 
         if (_rabbitMqConnection is null)
             throw new InvalidOperationException("RabbitMQ connection is not open.");
 
+        var body = SerializeMessage(context.Payload);
+        var properties = CreateProperties(context);
+
         await using var channel = await _rabbitMqConnection.CreateChannelAsync();
 
         await channel.ExchangeDeclareAsync(
-            exchange: messageConfiguration.Exchange, 
+            exchange: messageConfiguration.Exchange,
             type: ExchangeType.Topic,
             durable: true);
-
-        var body = SerializeMessage(@event);
-
-        var properties = CreateProperties(typeof(TEvent).Name);
 
         await channel.BasicPublishAsync(
             exchange: messageConfiguration.Exchange,
@@ -60,11 +86,18 @@ public sealed class RabbitMqEventBus : IHostedService, IEventBus, IAsyncDisposab
             body: body);
     }
 
-    private static BasicProperties CreateProperties(string eventName)
+    private static BasicProperties CreateProperties(IRabbitMqPublishContext context)
     {
         var properties = new BasicProperties();
-        properties.SetEventName(eventName);
-        properties.CorrelationId = Guid.NewGuid().ToString();
+
+        context.Headers.ToList().ForEach(kv =>
+        {
+            properties.Headers ??= new Dictionary<string, object?>();
+            properties.Headers[kv.Key] = kv.Value;
+        });
+
+        properties.SetEventName(context.Payload.GetType().Name);
+
         return properties;
     }
 
