@@ -1,6 +1,8 @@
 ﻿using L.EventBus.Abstractions;
+using L.EventBus.Abstractions.Filters;
 using L.EventBus.DependencyInjection.Configuration;
 using L.EventBus.RabbitMQ.Configuration;
+using L.EventBus.RabbitMQ.Context;
 using L.EventBus.RabbitMQ.DependencyInjection.Configuration.Exchange;
 using L.EventBus.RabbitMQ.Filters;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,12 +23,14 @@ public sealed class DiRabbitMqConfigurator(IServiceCollection services) : IDiRab
         });
     }
 
-    public void AddConsumeFilter<TFilter>() where TFilter : class, IRabbitMqConsumeFilter
+    public void AddConsumeFilter<TFilter>() where TFilter 
+        : class, IRabbitMqConsumeFilter
     {
         services.AddTransient<IRabbitMqConsumeFilter, TFilter>();
     }
 
-    public void AddPublishFilter<TFilter>() where TFilter : class, IRabbitMqPublishFilter
+    public void AddPublishFilter<TFilter>() where TFilter 
+        : class, IRabbitMqPublishFilter
     {
         services.AddTransient<IRabbitMqPublishFilter, TFilter>();
     }

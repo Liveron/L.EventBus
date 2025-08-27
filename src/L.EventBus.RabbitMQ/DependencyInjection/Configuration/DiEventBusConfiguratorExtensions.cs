@@ -1,7 +1,9 @@
 ﻿using L.EventBus.Abstractions;
 using L.EventBus.DependencyInjection.Configuration;
 using L.EventBus.RabbitMQ.Configuration;
-using L.EventBus.RabbitMQ.DependencyInjection.Configuration.Exchange;
+using L.EventBus.RabbitMQ.Filters.MessageHandling;
+using L.EventBus.RabbitMQ.Filters.MessagePublishing;
+using L.EventBus.RabbitMQ.Filters.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
 
@@ -14,13 +16,25 @@ public static class DiEventBusConfiguratorExtensions
     {
         eventBusConfigurator.Services.AddOptions<RabbitMqEventBusConfiguration>();
 
+        eventBusConfigurator.Services.AddDefaultFilters();
+
         var configurator = new DiRabbitMqConfigurator(eventBusConfigurator.Services);
         config?.Invoke(configurator);
 
-        var connection = new ConnectionFactory { Uri = new Uri(rabbitMqConnectionString) };
-        eventBusConfigurator.Services.AddSingleton(connection.CreateConnectionAsync().GetAwaiter().GetResult());
+        var connectionFactory = new ConnectionFactory { Uri = new Uri(rabbitMqConnectionString) };
+        var connection = connectionFactory.CreateConnectionAsync().GetAwaiter().GetResult();
+        eventBusConfigurator.Services.AddSingleton(connection);
 
-        eventBusConfigurator.Services.AddSingleton<IEventBus, RabbitMqEventBus>();
+        eventBusConfigurator.Services.AddSingleton<IRabbitMqEventBus, RabbitMqEventBus>();
         eventBusConfigurator.Services.AddHostedService(sp => (RabbitMqEventBus)sp.GetRequiredService<IEventBus>());
+    }
+
+    private static void AddDefaultFilters(this IServiceCollection services)
+    {
+        services.AddTransient<IRabbitMqMessageSerializerFilter, RabbitMqMessageSerializerFilter>();
+        services.AddTransient<IRabbitMqMessagePublisherFilter, RabbitMqMessagePublisherFilter>();
+
+        services.AddTransient<IRabbitMqMessageDeserializerFilter, RabbitMqMessageDeserializerFilter>();
+        services.AddTransient<IRabbitMqMessageHandlerFilter, RabbitMqMessageHandlerFilter>();
     }
 }

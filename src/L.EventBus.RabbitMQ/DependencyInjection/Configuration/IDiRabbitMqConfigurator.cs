@@ -1,5 +1,6 @@
 ﻿using L.EventBus.Abstractions;
 using L.EventBus.Abstractions.Filters;
+using L.EventBus.RabbitMQ.Context;
 using L.EventBus.RabbitMQ.DependencyInjection.Configuration.Exchange;
 using L.EventBus.RabbitMQ.Filters;
 

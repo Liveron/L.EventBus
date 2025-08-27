@@ -8,4 +8,8 @@
 	  <RepositoryUrl>https://github.com/Liveron/L.EventBus</RepositoryUrl>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="L.Pipes.Abstractions" Version="2.0.0" />
+  </ItemGroup>
+
 </Project>

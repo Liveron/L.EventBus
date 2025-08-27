@@ -1,14 +1,13 @@
 ﻿using EasyNetQ.Management.Client;
 using EasyNetQ.Management.Client.Model;
 using L.EventBus.Abstractions;
-using L.EventBus.Abstractions.Context;
 using L.EventBus.Abstractions.Filters;
 using L.EventBus.DependencyInjection;
 using L.EventBus.RabbitMQ.Context;
 using L.EventBus.RabbitMQ.DependencyInjection.Configuration;
 using L.EventBus.RabbitMQ.Filters;
+using L.Pipes.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using RabbitMQ.Client;
 using System.Text.Json;
 
@@ -245,7 +244,7 @@ public sealed class DiConfigurationTests(Fixture fixture)
     {
         public const string FilterKey = "First Filter Applied";
 
-        public async Task PublishAsync(IRabbitMqPublishContext context, RabbitMqPublishDelegate next)
+        public async Task HandleAsync(RabbitMqPublishContext context, FilterDelegate next)
         {
             context.Payload = new TestMessage(FilterKey);
 
@@ -257,7 +256,7 @@ public sealed class DiConfigurationTests(Fixture fixture)
     {
         public const string FilterKey = "Second Filter Applied";
 
-        public async Task PublishAsync(IRabbitMqPublishContext context, RabbitMqPublishDelegate next)
+        public async Task HandleAsync(RabbitMqPublishContext context, FilterDelegate next)
         {
             context.Payload = new TestMessage(FilterKey);
             await next(context);

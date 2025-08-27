@@ -1,8 +1,6 @@
-﻿using L.EventBus.Abstractions.Context;
+﻿using L.Pipes.Abstractions;
 
 namespace L.EventBus.Abstractions.Filters;
 
-public interface IPublishFilter
-{
-    Task PublishAsync(IPublishContext context, PublishDelegate next);
-}
+public interface IPublishFilter<TContext> : IFilter<TContext> 
+    where TContext : IPipeContext;

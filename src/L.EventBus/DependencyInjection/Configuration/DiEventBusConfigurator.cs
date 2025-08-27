@@ -9,11 +9,6 @@ public sealed class DiEventBusConfigurator(
 {
     public IServiceCollection Services => services;
 
-    public void AddConsumeFilter<TFilter>() where TFilter : class, IConsumeFilter
-    {
-        Services.AddTransient<IConsumeFilter, TFilter>();
-    }
-
     public IEventBusConfigurator AddSubscription<TEvent, TEventHandler>()
         where TEventHandler : class, IEventHandler<TEvent>
     {

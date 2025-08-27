@@ -1,8 +1,6 @@
-﻿using L.EventBus.Abstractions.Context;
+﻿using L.Pipes.Abstractions;
 
 namespace L.EventBus.Abstractions.Filters;
 
-public interface IConsumeFilter
-{
-    public Task ConsumeAsync(IConsumeContext context, ConsumeDelegate next);
-}
+public interface IConsumeFilter<TContext> : IFilter<TContext> 
+    where TContext : IPipeContext;
