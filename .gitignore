@@ -400,3 +400,6 @@ FodyWeavers.xsd
 *.sln.iml
 
 nuget.config
+
+# Claude Code documentation
+CLAUDE.md
