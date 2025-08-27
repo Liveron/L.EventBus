@@ -1,11 +1,12 @@
-﻿using System.Text;
-using System.Text.Json;
-using L.EventBus.Abstractions;
-using L.EventBus.DependencyInjection.Configuration;
-using L.EventBus.RabbitMQ.Configuration;
+﻿using L.EventBus.RabbitMQ.Configuration;
+using L.EventBus.RabbitMQ.Context;
 using L.EventBus.RabbitMQ.Extensions;
+using L.EventBus.RabbitMQ.Filters;
+using L.EventBus.RabbitMQ.Filters.MessageHandling;
+using L.EventBus.RabbitMQ.Filters.MessagePublishing;
+using L.EventBus.RabbitMQ.Filters.Serialization;
+using L.Pipes;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
@@ -13,116 +14,61 @@ using RabbitMQ.Client.Events;
 
 namespace L.EventBus.RabbitMQ;
 
-public sealed class RabbitMqEventBus : IHostedService, IEventBus, IAsyncDisposable, IDisposable
+public sealed class RabbitMqEventBus : IRabbitMqEventBus
 {
     private readonly IServiceProvider _services;
     private readonly RabbitMqEventBusConfiguration _rabbitMqConfiguration;
-    private readonly EventBusSubscriptionsInfo _subscriptionsInfo;
     private readonly ILogger? _logger;
 
-    private IConnection? _rabbitMqConnection;
-    private IChannel? _consumerChannel;
+    public IChannel? ConsumerChannel { get; private set; }
 
     // ReSharper disable once ConvertToPrimaryConstructor
     public RabbitMqEventBus(IServiceProvider services, IOptions<RabbitMqEventBusConfiguration> config,
-        IOptions<EventBusSubscriptionsInfo> subscriptionsInfo, ILogger<RabbitMqEventBus>? logger = null)
+        ILogger<RabbitMqEventBus>? logger = null)
     {
         _services = services;
         _rabbitMqConfiguration = config.Value;
-        _subscriptionsInfo = subscriptionsInfo.Value;
         _logger = logger;
     }
 
     public async Task PublishAsync<TEvent>(TEvent @event) where TEvent : notnull
     {
+        await using var scope = _services.CreateAsyncScope();
+        var filters = scope.ServiceProvider.GetServices<IRabbitMqPublishFilter>();
+        var serializer = scope.ServiceProvider.GetRequiredService<IRabbitMqMessageSerializerFilter>();
+        var publisher = scope.ServiceProvider.GetRequiredService<IRabbitMqMessagePublisherFilter>();
+
+        var context = CreatePublishContext(@event);
+        await Pipe.ExecuteFiltersAsync([.. filters, serializer, publisher], context);
+    }
+
+    private RabbitMqPublishContext CreatePublishContext<TEvent>(TEvent @event) where TEvent : notnull
+    {
         if (!_rabbitMqConfiguration.MessageConfigurations.TryGetValue(@event.GetType(), out var messageConfiguration))
-            throw new InvalidOperationException("There is no routing key for such event type.");
+            throw new InvalidOperationException("There is not such ");
 
-        if (_rabbitMqConnection is null)
-            throw new InvalidOperationException("RabbitMQ connection is not open.");
-
-        await using var channel = await _rabbitMqConnection.CreateChannelAsync();
-
-        await channel.ExchangeDeclareAsync(
-            exchange: messageConfiguration.Exchange, 
-            type: ExchangeType.Topic,
-            durable: true);
-
-        var body = SerializeMessage(@event);
-
-        var properties = CreateProperties(typeof(TEvent).Name);
-
-        await channel.BasicPublishAsync(
-            exchange: messageConfiguration.Exchange,
-            routingKey: messageConfiguration.RoutingKey,
-            mandatory: true,
-            basicProperties: properties,
-            body: body);
-    }
-
-    private static BasicProperties CreateProperties(string eventName)
-    {
-        var properties = new BasicProperties();
-        properties.SetEventName(eventName);
-        return properties;
-    }
-
-    private static byte[] SerializeMessage<TEvent>(TEvent @event)
-    {
-        var envelope = new EventEnvelope<TEvent>(
-            @event, "v1", "accounts-service", Guid.NewGuid());
-
-        return JsonSerializer.SerializeToUtf8Bytes(envelope);
+        return new RabbitMqPublishContext(@event, messageConfiguration.RoutingKey, 
+            messageConfiguration.Exchange, @event.GetType().Name);
     }
 
     private async Task OnMessageReceived(object _, BasicDeliverEventArgs args)
     {
-        var eventName = args.BasicProperties.GetEventName();
-        if (eventName is null)
-        {
-            _logger?.LogWarning("Unable to get event name header from message");
-            return;
-        }
-
-        var message = Encoding.UTF8.GetString(args.Body.Span);
-
-        try
-        {
-            await ProcessEvent(eventName, message);
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            throw;
-        }
-
-        if (_consumerChannel is null)
-            throw new InvalidOperationException("Consumer channel instance is null");
-
-        await _consumerChannel.BasicAckAsync(args.DeliveryTag, multiple: false);
-    }
-
-    private async Task ProcessEvent(string eventName, string message)
-    {
-        if (!_subscriptionsInfo.EventTypes.TryGetValue(eventName, out var eventType))
-        {
-            _logger?.LogWarning("Unable to resolve event type for event name {EventName}", eventType);
-            return;
-        }
-
-        var @event = DeserializeMessage(message, eventType);
-
         await using var scope = _services.CreateAsyncScope();
+        var deserializer = scope.ServiceProvider.GetRequiredService<IRabbitMqMessageDeserializerFilter>();
+        var filters = scope.ServiceProvider.GetServices<IRabbitMqConsumeFilter>();
+        var messageHandler = scope.ServiceProvider.GetRequiredService<IRabbitMqMessageHandlerFilter>();
 
-        foreach (var handler in scope.ServiceProvider.GetKeyedServices<IEventHandler>(eventType))
-        {
-            await handler.HandleAsync(@event);
-        }
+        var context = CreateConsumeContext(args);
+        await Pipe.ExecuteFiltersAsync([deserializer, .. filters, messageHandler], context);
     }
 
-    private static object DeserializeMessage(string message, Type eventType)
+    private static RabbitMqConsumeContext<ReadOnlyMemory<byte>> CreateConsumeContext(
+        BasicDeliverEventArgs args)
     {
-        return JsonSerializer.Deserialize(message, eventType)!;
+        var eventName = args.BasicProperties.GetEventName();
+
+        return new RabbitMqConsumeContext<ReadOnlyMemory<byte>>(
+            args.Body, args.DeliveryTag, eventName, args.BasicProperties.Headers);
     }
 
     public async Task StartAsync(CancellationToken stoppingToken)
@@ -131,12 +77,18 @@ public sealed class RabbitMqEventBus : IHostedService, IEventBus, IAsyncDisposab
         {
             _logger?.LogInformation("Starting RabbitMQ connection on a background thread");
 
-            _rabbitMqConnection = _services.GetRequiredService<IConnection>();
-            _consumerChannel = await _rabbitMqConnection.CreateChannelAsync(cancellationToken: stoppingToken);
+            var connection = _services.GetRequiredService<IConnection>();
+            if (!connection.IsOpen)
+            {
+                _logger?.LogWarning("RabbitMQ connection is not open.");
+                return;
+            }
+
+            ConsumerChannel = await connection.CreateChannelAsync(cancellationToken: stoppingToken);
 
             foreach (var config in _rabbitMqConfiguration.ExchangeConfigurations)
             {
-                await _consumerChannel.ExchangeDeclareAsync(
+                await ConsumerChannel.ExchangeDeclareAsync(
                     exchange: config.Name,
                     type: config.Type,
                     durable: true,
@@ -145,14 +97,14 @@ public sealed class RabbitMqEventBus : IHostedService, IEventBus, IAsyncDisposab
 
             foreach (var config in _rabbitMqConfiguration.QueueConfigurations)
             {
-                await _consumerChannel.QueueDeclareAsync(
+                await ConsumerChannel.QueueDeclareAsync(
                     queue: config.Name,
                     autoDelete: false,
                     durable: true,
                     cancellationToken: stoppingToken,
                     exclusive: false);
 
-                await _consumerChannel.QueueBindAsync(
+                await ConsumerChannel.QueueBindAsync(
                     queue: config.Name,
                     exchange: config.Exchange,
                     routingKey: config.RoutingKey,
@@ -161,10 +113,10 @@ public sealed class RabbitMqEventBus : IHostedService, IEventBus, IAsyncDisposab
 
             foreach (var subscription in _rabbitMqConfiguration.QueueSubscriptions)
             {
-                var consumer = new AsyncEventingBasicConsumer(_consumerChannel);
+                var consumer = new AsyncEventingBasicConsumer(ConsumerChannel);
                 consumer.ReceivedAsync += OnMessageReceived;
 
-                await _consumerChannel.BasicConsumeAsync(
+                await ConsumerChannel.BasicConsumeAsync(
                     queue: subscription,
                     autoAck: false,
                     consumer: consumer,
@@ -185,12 +137,12 @@ public sealed class RabbitMqEventBus : IHostedService, IEventBus, IAsyncDisposab
 
     public async ValueTask DisposeAsync()
     {
-        if (_consumerChannel != null) 
-            await _consumerChannel.DisposeAsync();
+        if (ConsumerChannel is not null)
+            await ConsumerChannel.DisposeAsync();
     }
 
     public void Dispose()
     {
-        _consumerChannel?.Dispose();
+        ConsumerChannel?.Dispose();
     }
 }
