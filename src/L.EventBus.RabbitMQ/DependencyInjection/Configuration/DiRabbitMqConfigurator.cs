@@ -5,6 +5,7 @@ using L.EventBus.RabbitMQ.Configuration;
 using L.EventBus.RabbitMQ.Context;
 using L.EventBus.RabbitMQ.DependencyInjection.Configuration.Exchange;
 using L.EventBus.RabbitMQ.Filters;
+using L.EventBus.RabbitMQ.Filters.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace L.EventBus.RabbitMQ.DependencyInjection.Configuration;
@@ -48,5 +49,25 @@ public sealed class DiRabbitMqConfigurator(IServiceCollection services) : IDiRab
         {
             o.QueueSubscriptions.Add(queue);
         });
+    }
+
+    public void SetMessageSerializer<TMessageSerializer>() 
+        where TMessageSerializer : class, IRabbitMqMessageSerializerFilter
+    {
+        var previousSerializer = services.FirstOrDefault(d => d.ServiceType == typeof(IRabbitMqMessageSerializerFilter));
+        if (previousSerializer is not null)
+            services.Remove(previousSerializer);
+
+        services.AddTransient<IRabbitMqMessageSerializerFilter, TMessageSerializer>();
+    }
+
+    public void SetMessageDeserializer<TMessageDeserializer>()
+        where TMessageDeserializer : class, IRabbitMqMessageDeserializerFilter
+    {
+        var previousDeserializer = services.FirstOrDefault(d => d.ServiceType == typeof(IRabbitMqMessageDeserializerFilter));
+        if (previousDeserializer is not null)
+            services.Remove(previousDeserializer);
+
+        services.AddTransient<IRabbitMqMessageDeserializerFilter, TMessageDeserializer>();
     }
 }

@@ -1,3 +1,7 @@
-﻿namespace L.EventBus.RabbitMQ.Filters.Serialization;
+﻿using L.EventBus.Abstractions.Filters;
+using L.EventBus.RabbitMQ.Context;
 
-public interface IRabbitMqMessageDeserializerFilter : IRabbitMqConsumeFilter<ReadOnlyMemory<byte>>;
+namespace L.EventBus.RabbitMQ.Filters.Serialization;
+
+public interface IRabbitMqMessageDeserializerFilter 
+    : IMessageDeserializerFilter<RabbitMqConsumeContext<ReadOnlyMemory<byte>>>;

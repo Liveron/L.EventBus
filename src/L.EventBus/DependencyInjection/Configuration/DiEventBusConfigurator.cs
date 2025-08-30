@@ -21,15 +21,4 @@ public sealed class DiEventBusConfigurator(
 
         return this;
     }
-
-    public void SetMessageEnvelope(Type envelopeType)
-    {
-        if (envelopeType.GetGenericTypeDefinition() != typeof(IMessageEnvelope<>))
-            throw new ArgumentException("Envelope type must be of type IMessageEnvelope<>", nameof(envelopeType));
-
-        Services.Configure<EventBusInfo>(o =>
-        {
-           o.MessageEnvelopeType = envelopeType;
-        });
-    }
 }

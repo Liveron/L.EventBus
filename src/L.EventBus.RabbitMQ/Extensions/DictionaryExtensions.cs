@@ -1,4 +1,6 @@
-﻿namespace L.EventBus.RabbitMQ.Extensions;
+﻿using System.Text;
+
+namespace L.EventBus.RabbitMQ.Extensions;
 
 public static class DictionaryExtensions
 {
@@ -6,6 +8,11 @@ public static class DictionaryExtensions
     {
         if (!headers.TryGetValue(Headers.EventName, out var value))
             return string.Empty;
+        if (value is byte[] bytes)
+        {
+            headers[Headers.EventName] = Encoding.UTF8.GetString(bytes);
+            return (headers[Headers.EventName] as string)!;
+        }
         if (value is not string name)
             return string.Empty;
         return name;
