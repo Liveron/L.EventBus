@@ -65,10 +65,10 @@ public sealed class RabbitMqEventBus : IRabbitMqEventBus
     private static RabbitMqConsumeContext<ReadOnlyMemory<byte>> CreateConsumeContext(
         BasicDeliverEventArgs args)
     {
-        var eventName = args.BasicProperties.GetEventName();
-
-        return new RabbitMqConsumeContext<ReadOnlyMemory<byte>>(
-            args.Body, args.DeliveryTag, eventName, args.BasicProperties.Headers);
+        return new RabbitMqConsumeContext<ReadOnlyMemory<byte>>(args.Body, args.DeliveryTag)
+        {
+            Headers = args.BasicProperties.Headers ?? new Dictionary<string, object?>()
+        };
     }
 
     public async Task StartAsync(CancellationToken stoppingToken)

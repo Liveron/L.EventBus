@@ -30,17 +30,7 @@ public class RabbitMqMessageDeserializerFilter(
             return;
         }
 
-        object? message;
-        if (eventBusInfo.MessageEnvelopeType is not null )
-        {
-            var envelopeType = eventBusInfo.MessageEnvelopeType.MakeGenericType(eventType);
-            message = JsonSerializer.Deserialize(messageString, envelopeType)!;
-        }
-        else         
-        {
-            message = JsonSerializer.Deserialize(messageString, eventType)!;
-        }
-
+        var message = JsonSerializer.Deserialize(messageString, eventType);
         if (message is null)
         {
             logger?.LogWarning(
@@ -48,8 +38,11 @@ public class RabbitMqMessageDeserializerFilter(
             return;
         }
 
-        var consumeContext = new RabbitMqConsumeContext(
-            message, context.DeliveryTag, context.EventName, context.Headers);
+        var consumeContext = new RabbitMqConsumeContext(message, context.DeliveryTag)
+        {
+            Headers = context.Headers,
+            EventName = context.EventName,
+        };
         await next(consumeContext);
     }
 }

@@ -3,6 +3,7 @@ using L.EventBus.Abstractions.Filters;
 using L.EventBus.RabbitMQ.Context;
 using L.EventBus.RabbitMQ.DependencyInjection.Configuration.Exchange;
 using L.EventBus.RabbitMQ.Filters;
+using L.EventBus.RabbitMQ.Filters.Serialization;
 
 namespace L.EventBus.RabbitMQ.DependencyInjection.Configuration;
 
@@ -12,4 +13,6 @@ public interface IDiRabbitMqConfigurator
     void AddConsumeFilter<TFilter>() where TFilter : class, IRabbitMqConsumeFilter;
     void AddPublishFilter<TFilter>() where TFilter : class, IRabbitMqPublishFilter;
     void AddSubscription<TEvent, TEventHandler>(string queue) where TEventHandler : class, IEventHandler<TEvent>;
+    void SetMessageSerializer<TMessageSerializer>() where TMessageSerializer : class, IRabbitMqMessageSerializerFilter;
+    void SetMessageDeserializer<TMessageDeserializer>() where TMessageDeserializer : class, IRabbitMqMessageDeserializerFilter;
 }

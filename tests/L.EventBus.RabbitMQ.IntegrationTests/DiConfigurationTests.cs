@@ -1,14 +1,20 @@
 ﻿using EasyNetQ.Management.Client;
 using EasyNetQ.Management.Client.Model;
 using L.EventBus.Abstractions;
+using L.EventBus.Abstractions.Configuration;
 using L.EventBus.Abstractions.Filters;
 using L.EventBus.DependencyInjection;
+using L.EventBus.DependencyInjection.Configuration;
 using L.EventBus.RabbitMQ.Context;
 using L.EventBus.RabbitMQ.DependencyInjection.Configuration;
 using L.EventBus.RabbitMQ.Filters;
+using L.EventBus.RabbitMQ.Filters.Serialization;
 using L.Pipes.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
+using System.Text;
 using System.Text.Json;
 
 namespace L.EventBus.RabbitMQ.IntegrationTests;
@@ -22,7 +28,7 @@ public sealed class DiConfigurationTests(Fixture fixture)
     private const string QueueRoutingKey = "message.*";
     private const string VHost = "/";
     private const string MessageRoutingKey = "message.test";
-    private const string TestMessageContent = "Test"; 
+    private const string TestMessageContent = "Test";
 
     [Fact]
     public void AddRabbitMq_ShouldCreateValidConnection()
@@ -40,7 +46,7 @@ public sealed class DiConfigurationTests(Fixture fixture)
 
         // Assert
         var connection = provider.GetService<IConnection>();
-        
+
         Assert.NotNull(connection);
         Assert.True(connection.IsOpen);
     }
@@ -61,7 +67,7 @@ public sealed class DiConfigurationTests(Fixture fixture)
             });
         });
         await using var provider = services.BuildServiceProvider();
-        await using var eventBus = ActivatorUtilities.CreateInstance<RabbitMqEventBus>(provider);
+        await using var eventBus = provider.GetRequiredService<IRabbitMqEventBus>();
         await eventBus.StartAsync(CancellationToken.None);
 
         // Assert
@@ -91,7 +97,7 @@ public sealed class DiConfigurationTests(Fixture fixture)
             });
         });
         await using var provider = services.BuildServiceProvider();
-        await using var eventBus = ActivatorUtilities.CreateInstance<RabbitMqEventBus>(provider);
+        await using var eventBus = provider.GetRequiredService<IRabbitMqEventBus>();
         await eventBus.StartAsync(CancellationToken.None);
 
         // Assert
@@ -129,14 +135,14 @@ public sealed class DiConfigurationTests(Fixture fixture)
             });
         });
         await using var provider = services.BuildServiceProvider();
-        await using var eventBus = ActivatorUtilities.CreateInstance<RabbitMqEventBus>(provider);
+        await using var eventBus = provider.GetRequiredService<IRabbitMqEventBus>();
         await eventBus.StartAsync(CancellationToken.None);
         await eventBus.PublishAsync(new TestMessage(TestMessageContent));
 
         // Assert
         var queue = await fixture.ManagementClient.GetQueueAsync(VHost, QueueName);
 
-        var messages = await fixture.ManagementClient.GetMessagesFromQueueAsync(VHost, QueueName, 
+        var messages = await fixture.ManagementClient.GetMessagesFromQueueAsync(VHost, QueueName,
             new GetMessagesFromQueueInfo(1, AckMode.AckRequeueFalse));
 
         Assert.NotNull(messages);
@@ -173,13 +179,11 @@ public sealed class DiConfigurationTests(Fixture fixture)
             });
         });
         await using var provider = services.BuildServiceProvider();
-        await using var eventBus = ActivatorUtilities.CreateInstance<RabbitMqEventBus>(provider);
+        await using var eventBus = provider.GetRequiredService<IRabbitMqEventBus>();
         await eventBus.StartAsync(CancellationToken.None);
         await eventBus.PublishAsync(new TestMessage(TestMessageContent));
 
         // Assert
-        var queue = await fixture.ManagementClient.GetQueueAsync(VHost, QueueName);
-
         var messages = await fixture.ManagementClient.GetMessagesFromQueueAsync(VHost, QueueName,
             new GetMessagesFromQueueInfo(1, AckMode.AckRequeueFalse));
 
@@ -214,7 +218,91 @@ public sealed class DiConfigurationTests(Fixture fixture)
             });
         });
         await using var provider = services.BuildServiceProvider();
-        await using var eventBus = ActivatorUtilities.CreateInstance<RabbitMqEventBus>(provider);
+        await using var eventBus = provider.GetRequiredService<IRabbitMqEventBus>();
+        await eventBus.StartAsync(CancellationToken.None);
+        await eventBus.PublishAsync(new TestMessage(TestMessageContent));
+
+        await Task.Delay(10000);
+
+        // Assert
+        var counter = provider.GetRequiredService<TestCounter>();
+        Assert.Equal(1, counter.Count);
+    }
+
+    [Fact]
+    public async Task SetSerializer_ShouldSerializeMessage()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+
+        // Act
+        services.AddEventBus(config =>
+        {
+            var connectionString = fixture.RabbitMqContainer.GetConnectionString();
+            config.UseRabbitMq(connectionString, mqConfigurator =>
+            {
+                mqConfigurator.SetMessageSerializer<TestSerializer>();
+                mqConfigurator.SetMessageDeserializer<TestDeserializer>();
+
+                mqConfigurator.SetExchange(TypeOfExchange, ExchangeName, exchangeConfig =>
+                {
+                    exchangeConfig.SetQueue(QueueName, QueueRoutingKey);
+                    exchangeConfig.SetMessage<TestMessage>(MessageRoutingKey);
+                });
+            });
+        });
+        await using var provider = services.BuildServiceProvider();
+        await using var eventBus = provider.GetRequiredService<IRabbitMqEventBus>();
+        await eventBus.StartAsync(CancellationToken.None);
+        await eventBus.PublishAsync(new TestMessage(TestMessageContent));
+
+        var messages = await fixture.ManagementClient.GetMessagesFromQueueAsync(VHost, QueueName,
+            new GetMessagesFromQueueInfo(1, AckMode.AckRequeueFalse));
+
+        // Assert
+        Assert.NotNull(messages);
+        Assert.NotEmpty(messages);
+
+        var message = messages[0];
+        var payloadString = message.Payload;
+        var envelope = JsonSerializer.Deserialize<TestEnvelope<TestMessage>>(payloadString);
+
+        Assert.NotNull(envelope);
+        Assert.IsType<TestMessage>(envelope.Payload);
+
+        var nonGenericEnvelope = envelope as TestEnvelope;
+
+        Assert.NotNull(nonGenericEnvelope);
+        Assert.IsType<TestMessage>(nonGenericEnvelope.Payload);
+    }
+
+    [Fact]
+    public async Task SetDeserializer_CorrectlyDeserializeMessage()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+
+        // Act
+        services.AddSingleton<TestCounter>();
+        services.AddEventBus(config =>
+        {
+            var connectionString = fixture.RabbitMqContainer.GetConnectionString();
+            config.UseRabbitMq(connectionString, mqConfigurator =>
+            {
+                mqConfigurator.SetMessageSerializer<TestSerializer>();
+                mqConfigurator.SetMessageDeserializer<TestDeserializer>();
+
+                mqConfigurator.SetExchange(TypeOfExchange, ExchangeName, exchangeConfig =>
+                {
+                    exchangeConfig.SetQueue(QueueName, QueueRoutingKey);
+                    exchangeConfig.SetMessage<TestMessage>(MessageRoutingKey);
+                });
+
+                mqConfigurator.AddSubscription<TestMessage, TestEventHandler>(QueueName);
+            });
+        });
+        await using var provider = services.BuildServiceProvider();
+        await using var eventBus = provider.GetRequiredService<IRabbitMqEventBus>();
         await eventBus.StartAsync(CancellationToken.None);
         await eventBus.PublishAsync(new TestMessage(TestMessageContent));
 
@@ -229,6 +317,55 @@ public sealed class DiConfigurationTests(Fixture fixture)
     {
         public int Count { get; private set; } = 0;
         public void Increment() => Count++;
+    }
+
+    private sealed class TestSerializer : IRabbitMqMessageSerializerFilter
+    {
+        public async Task HandleAsync(RabbitMqPublishContext context, FilterDelegate next)
+        {
+            var envelope = new TestEnvelope<TestMessage>((context.Payload as TestMessage)!);
+            var messageString = JsonSerializer.Serialize(envelope);
+            context.Payload = Encoding.UTF8.GetBytes(messageString);
+            await next(context);
+        }
+    }
+
+    private sealed class TestDeserializer(IOptions<EventBusInfo> info) : IRabbitMqMessageDeserializerFilter
+    {
+        private readonly EventBusInfo _eventBusInfo = info.Value;
+
+        public async Task HandleAsync(RabbitMqConsumeContext<ReadOnlyMemory<byte>> context, FilterDelegate next)
+        {
+            if (string.IsNullOrWhiteSpace(context.EventName))
+                return;
+
+            var messageString = Encoding.UTF8.GetString(context.Payload.Span);
+            if (!_eventBusInfo.EventTypes.TryGetValue(context.EventName, out var type))
+                return;
+
+            var envelopeType = typeof(TestEnvelope<>).MakeGenericType(type);
+            var message = JsonSerializer.Deserialize(messageString, envelopeType);
+            if (message is not TestEnvelope envelope)
+                return;
+
+            var nextContext = new RabbitMqConsumeContext(envelope.Payload, context.DeliveryTag)
+            {
+                Headers = context.Headers,
+            };
+            await next(nextContext);
+        }
+    }
+
+    private class TestEnvelope(object payload)
+    {
+        public string EnvelopeProp { get; set; } = "Hello";
+        public object Payload { get; set; } = payload;
+    }
+
+    private sealed class TestEnvelope<TPayload>(TPayload payload) : TestEnvelope(payload)
+    {
+        public new TPayload Payload { get; set; } = payload;
+
     }
 
     private sealed class TestEventHandler(TestCounter counter) : IEventHandler<TestMessage>
