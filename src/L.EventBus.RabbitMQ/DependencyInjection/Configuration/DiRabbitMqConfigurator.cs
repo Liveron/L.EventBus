@@ -54,20 +54,45 @@ public sealed class DiRabbitMqConfigurator(IServiceCollection services) : IDiRab
     public void SetMessageSerializer<TMessageSerializer>() 
         where TMessageSerializer : class, IRabbitMqMessageSerializerFilter
     {
-        var previousSerializer = services.FirstOrDefault(d => d.ServiceType == typeof(IRabbitMqMessageSerializerFilter));
-        if (previousSerializer is not null)
-            services.Remove(previousSerializer);
-
+        RemovePreviousService(typeof(IRabbitMqMessageSerializerFilter));
         services.AddTransient<IRabbitMqMessageSerializerFilter, TMessageSerializer>();
     }
 
     public void SetMessageDeserializer<TMessageDeserializer>()
         where TMessageDeserializer : class, IRabbitMqMessageDeserializerFilter
     {
-        var previousDeserializer = services.FirstOrDefault(d => d.ServiceType == typeof(IRabbitMqMessageDeserializerFilter));
-        if (previousDeserializer is not null)
-            services.Remove(previousDeserializer);
-
+        RemovePreviousService(typeof(IRabbitMqMessageDeserializerFilter));
         services.AddTransient<IRabbitMqMessageDeserializerFilter, TMessageDeserializer>();
+    }
+
+    public void SetMessageSerializer(Type messageSerializerType)
+    {
+        if (!typeof(IRabbitMqMessageSerializerFilter).IsAssignableFrom(messageSerializerType) )
+            throw new ArgumentException($"{messageSerializerType.Name} must implement {nameof(IRabbitMqMessageSerializerFilter)}");
+
+        Type serviceType;
+        if (messageSerializerType.IsGenericTypeDefinition)
+        {
+            serviceType = typeof(IRabbitMqMessageSerializerFilter<>);
+        }
+        else if (messageSerializerType.IsGenericType)
+        {
+            var genericArgument = messageSerializerType.GetGenericArguments()[0];
+            serviceType = typeof(IRabbitMqMessageSerializerFilter<>).MakeGenericType(genericArgument);
+        }
+        else
+        {
+             serviceType = typeof(IRabbitMqMessageSerializerFilter);
+        }
+
+        RemovePreviousService(serviceType);
+        services.AddTransient(serviceType, messageSerializerType);
+    }
+
+    private void RemovePreviousService(Type serviceType)
+    {
+        var previousService = services.FirstOrDefault(d => d.ServiceType == serviceType);
+        if (previousService is not null)
+            services.Remove(previousService);
     }
 }
