@@ -26,7 +26,7 @@ public static class DiEventBusConfiguratorExtensions
         eventBusConfigurator.Services.AddSingleton(connection);
 
         eventBusConfigurator.Services.AddSingleton<IRabbitMqEventBus, RabbitMqEventBus>();
-        eventBusConfigurator.Services.AddHostedService(sp => (RabbitMqEventBus)sp.GetRequiredService<IEventBus>());
+        eventBusConfigurator.Services.AddHostedService(sp => sp.GetRequiredService<IRabbitMqEventBus>());
     }
 
     private static void AddDefaultFilters(this IServiceCollection services)
