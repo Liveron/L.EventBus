@@ -15,4 +15,5 @@ public interface IDiRabbitMqConfigurator
     void AddSubscription<TEvent, TEventHandler>(string queue) where TEventHandler : class, IEventHandler<TEvent>;
     void SetMessageSerializer<TMessageSerializer>() where TMessageSerializer : class, IRabbitMqMessageSerializerFilter;
     void SetMessageDeserializer<TMessageDeserializer>() where TMessageDeserializer : class, IRabbitMqMessageDeserializerFilter;
+    void SetMessageSerializer(Type messageDeserializerType);
 }

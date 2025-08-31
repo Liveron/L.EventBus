@@ -35,19 +35,21 @@ public sealed class RabbitMqEventBus : IRabbitMqEventBus
     {
         await using var scope = _services.CreateAsyncScope();
         var filters = scope.ServiceProvider.GetServices<IRabbitMqPublishFilter>();
-        var serializer = scope.ServiceProvider.GetRequiredService<IRabbitMqMessageSerializerFilter>();
+        IRabbitMqMessageSerializerFilter? serializer;
+        serializer = scope.ServiceProvider.GetService<IRabbitMqMessageSerializerFilter<TEvent>>();
+        serializer ??= scope.ServiceProvider.GetRequiredService<IRabbitMqMessageSerializerFilter>();
         var publisher = scope.ServiceProvider.GetRequiredService<IRabbitMqMessagePublisherFilter>();
 
         var context = CreatePublishContext(@event);
         await Pipe.ExecuteFiltersAsync([.. filters, serializer, publisher], context);
     }
 
-    private RabbitMqPublishContext CreatePublishContext<TEvent>(TEvent @event) where TEvent : notnull
+    private RabbitMqPublishContext<TEvent> CreatePublishContext<TEvent>(TEvent @event) where TEvent : notnull
     {
         if (!_rabbitMqConfiguration.MessageConfigurations.TryGetValue(@event.GetType(), out var messageConfiguration))
             throw new InvalidOperationException("There is not such ");
 
-        return new RabbitMqPublishContext(@event, messageConfiguration.RoutingKey, 
+        return new RabbitMqPublishContext<TEvent>(@event, messageConfiguration.RoutingKey, 
             messageConfiguration.Exchange, @event.GetType().Name);
     }
 

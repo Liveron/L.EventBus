@@ -242,7 +242,6 @@ public sealed class DiConfigurationTests(Fixture fixture)
             config.UseRabbitMq(connectionString, mqConfigurator =>
             {
                 mqConfigurator.SetMessageSerializer<TestSerializer>();
-                mqConfigurator.SetMessageDeserializer<TestDeserializer>();
 
                 mqConfigurator.SetExchange(TypeOfExchange, ExchangeName, exchangeConfig =>
                 {
@@ -275,6 +274,51 @@ public sealed class DiConfigurationTests(Fixture fixture)
         Assert.NotNull(nonGenericEnvelope);
         Assert.IsType<TestMessage>(nonGenericEnvelope.Payload);
     }
+    [Fact]
+    public async Task SetOpenGenericSerializer_ShouldSerializeMessage()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+
+        // Act
+        services.AddEventBus(config =>
+        {
+            var connectionString = fixture.RabbitMqContainer.GetConnectionString();
+            config.UseRabbitMq(connectionString, mqConfigurator =>
+            {
+                mqConfigurator.SetMessageSerializer(typeof(TestOpenGenericSerializer<>));
+                mqConfigurator.SetExchange(TypeOfExchange, ExchangeName, exchangeConfig =>
+                {
+                    exchangeConfig.SetQueue(QueueName, QueueRoutingKey);
+                    exchangeConfig.SetMessage<TestMessage>(MessageRoutingKey);
+                });
+            });
+        });
+        await using var provider = services.BuildServiceProvider();
+        await using var eventBus = provider.GetRequiredService<IRabbitMqEventBus>();
+        await eventBus.StartAsync(CancellationToken.None);
+        await eventBus.PublishAsync(new TestMessage(TestMessageContent));
+
+        var messages = await fixture.ManagementClient.GetMessagesFromQueueAsync(VHost, QueueName,
+            new GetMessagesFromQueueInfo(1, AckMode.AckRequeueFalse));
+
+        // Assert
+        Assert.NotNull(messages);
+        Assert.NotEmpty(messages);
+
+        var message = messages[0];
+        var payloadString = message.Payload;
+        var envelope = JsonSerializer.Deserialize<TestEnvelope<TestMessage>>(payloadString);
+
+        Assert.NotNull(envelope);
+        Assert.IsType<TestMessage>(envelope.Payload);
+
+        var nonGenericEnvelope = envelope as TestEnvelope;
+
+        Assert.NotNull(nonGenericEnvelope);
+        Assert.IsType<TestMessage>(nonGenericEnvelope.Payload);
+    }
+
 
     [Fact]
     public async Task SetDeserializer_CorrectlyDeserializeMessage()
@@ -327,6 +371,21 @@ public sealed class DiConfigurationTests(Fixture fixture)
             var messageString = JsonSerializer.Serialize(envelope);
             context.Payload = Encoding.UTF8.GetBytes(messageString);
             await next(context);
+        }
+    }
+
+    private sealed class TestOpenGenericSerializer<TPayload> : IRabbitMqMessageSerializerFilter<TPayload>  where TPayload : notnull
+    {
+        public async Task HandleAsync(RabbitMqPublishContext<TPayload> context, FilterDelegate next)
+        {
+            var envelope = new TestEnvelope<TPayload>(context.Payload);
+            var messageString = JsonSerializer.Serialize(envelope);
+            var nextContext = new RabbitMqPublishContext(Encoding.UTF8.GetBytes(messageString),
+                context.RoutingKey, context.Exchange, context.EventName)
+            {
+                Headers = context.Headers,
+            };
+            await next(nextContext);
         }
     }
 
