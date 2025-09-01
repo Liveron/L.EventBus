@@ -5,7 +5,8 @@ namespace L.EventBus.RabbitMQ.Context;
 
 public class RabbitMqConsumeContext(object payload, ulong deliveryTag) : IPipeContext
 {
-    public IDictionary<string, object?> Headers { get; init; } = new Dictionary<string, object?>();
+    public Dictionary<string, object?> Headers { get; init; } = [];
+    public Dictionary<string, object?> Items { get; init; } = [];
     public object Payload { get; set; } = payload;
     public ulong DeliveryTag { get; set; } = deliveryTag;
     public string EventName
